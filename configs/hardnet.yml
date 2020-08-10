@@ -1,7 +1,7 @@
 model:
     arch: hardnet
 data:
-    dataset: wild_dash
+    dataset: cityscapes
     train_split: train
     val_split: val
     img_rows: 1024
