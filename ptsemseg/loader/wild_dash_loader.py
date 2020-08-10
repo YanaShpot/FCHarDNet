@@ -4,21 +4,16 @@ import numpy as np
 
 from PIL import Image
 from torch.utils import data
+from pathlib import Path
 
 from ptsemseg.utils import recursive_glob
 from ptsemseg.augmentations import Compose, RandomHorizontallyFlip, RandomRotate, Scale
 
 
-class cityscapesLoader(data.Dataset):
-    """cityscapesLoader
+class WildDashLoader(data.Dataset):
+    """WildDashLoader
 
-    https://www.cityscapes-dataset.com
-
-    Data is derived from CityScapes, and can be downloaded from here:
-    https://www.cityscapes-dataset.com/downloads/
-
-    Many Thanks to @fvisin for the loader repo:
-    https://github.com/fvisin/dataset_loaders/blob/master/dataset_loaders/images/cityscapes.py
+    https://wilddash.cc/download
     """
 
     colors = [  # [  0,   0,   0],
@@ -76,7 +71,6 @@ class cityscapesLoader(data.Dataset):
         self.is_transform = is_transform
         self.augmentations = augmentations
         self.img_norm = img_norm
-        self.n_classes = 19
         self.img_size = img_size if isinstance(img_size, tuple) else (img_size, img_size)
         self.mean = np.array(self.mean_rgb[version])
         self.files = {}
@@ -84,9 +78,9 @@ class cityscapesLoader(data.Dataset):
         self.images_base = os.path.join(self.root, "leftImg8bit", self.split)
         self.annotations_base = os.path.join(self.root, "gtFine", self.split)
 
-        self.files[split] = recursive_glob(rootdir=self.images_base, suffix=".png")
+        self.files[split] = recursive_glob(rootdir=self.images_base, suffix=".jpg")
 
-        self.void_classes = [0, 1, 2, 3, 4, 5, 6, 9, 10, 14, 15, 16, 18, 29, 30, -1]
+        self.void_classes = [0, 1, 2, 3, 4, 5, 6, 9, 10, 14, 15, 16, 18, 29, 30, 34, 35, 36, 37, 38 -1]
         self.valid_classes = [
             7,
             8,
@@ -109,6 +103,7 @@ class cityscapesLoader(data.Dataset):
             33,
         ]
 
+        self.n_classes = len(self.valid_classes)
         #self.void_classes = [ 255]
         #self.valid_classes = [i for i in range(19)]
         self.class_names = [
@@ -157,13 +152,10 @@ class cityscapesLoader(data.Dataset):
 
         :param index:
         """
-        img_path = self.files[self.split][index].rstrip()
-        lbl_path = os.path.join(
-            self.annotations_base,
-            img_path.split(os.sep)[-2],
-            os.path.basename(img_path)[:-15] + "gtFine_labelIds.png",
-        )
-        name = img_path.split(os.sep)[-1][:-4] + ".png"
+        img_path = Path(self.files[self.split][index].rstrip())
+
+        name = Path(img_path).stem + ".png"
+        lbl_path = Path(self.annotations_base) / img_path.split(os.sep)[-2] / name
 
         img = Image.open(img_path)
         img = np.array(img, dtype=np.uint8)
