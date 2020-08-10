@@ -115,7 +115,7 @@ def validate(cfg, args):
                 dir = Path("./out_predID/") / model_name
                 if not dir.exists():
                   dir.mkdir(parents=True, exist_ok=True)
-                imageio.imwrite(dir+fname[0], decoded)
+                imageio.imwrite(dir/fname[0], decoded)
 
                 save_rgb = True
                 if save_rgb:
@@ -126,10 +126,10 @@ def validate(cfg, args):
                     fname_new = fname[0]
                     fname_new = fname_new[:-4]
                     fname_new += '.jpg'
-                    dir = "./out_rgb/"
-                    if not os.path.exists(dir):
-                      os.mkdir(dir)
-                    imageio.imwrite(dir+fname_new, blend)
+                    rgb_dir = Path("./out_rgb/") / model_name
+                    if not rgb_dir.exists():
+                      rgb_dir.mkdir(parents=True, exist_ok=True)
+                    imageio.imwrite(dir/fname_new, blend)
 
                 
             pred = outputs.data.max(1)[1].cpu().numpy()
