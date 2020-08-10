@@ -153,6 +153,7 @@ class WildDashLoader(data.Dataset):
         :param index:
         """
         img_path = Path(self.files[self.split][index].rstrip())
+        print("img_path", img_path)
 
         name = Path(img_path).stem + ".png"
         lbl_path = Path(self.annotations_base) / img_path.parent.name / name
