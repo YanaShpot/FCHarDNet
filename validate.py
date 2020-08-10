@@ -38,8 +38,8 @@ def validate(cfg, args):
         data_path,
         split=cfg["data"]["val_split"],
         is_transform=True,
-        img_size=(1024,2048),
-        size_to_load=10,
+        img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),
+        size_to_load=cfg["data"]["size_limit"],
     )
 
     n_classes = loader.n_classes
