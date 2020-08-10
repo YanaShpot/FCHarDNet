@@ -1,5 +1,6 @@
 import yaml
 import torch
+import csv
 import argparse
 import timeit
 import time
@@ -75,6 +76,7 @@ def validate(cfg, args):
     
     #stat(model, (3, 1024, 2048))
     torch.backends.cudnn.benchmark=True
+    model_name = Path(args.model_path).stem
 
     for i, (images, labels, fname) in enumerate(valloader):
         start_time = timeit.default_timer()
@@ -111,7 +113,6 @@ def validate(cfg, args):
                 pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
 
                 decoded = loader.decode_segmap_id(pred)
-                model_name = Path(args.model_path).stem
                 dir = Path("./out_predID/") / model_name / cfg["data"]["dataset"]
                 if not dir.exists():
                   dir.mkdir(parents=True, exist_ok=True)
@@ -151,7 +152,10 @@ def validate(cfg, args):
 
     score, class_iou = running_metrics.get_scores()
     
-    print("Total Frame Rate = %.2f fps" %( loader.size_to_load / total_time ))
+    total_frame_rate = loader.size_to_load / total_time
+    headers = ["Model", "Dataset", "Total Frame Rate"]
+    vals = [model_name, cfg["data"]["dataset"], total_frame_rate]
+    print("Total Frame Rate = %.2f fps" %( total_frame_rate ))
 
     if args.update_bn:
       model = torch.nn.DataParallel(model)
@@ -161,9 +165,24 @@ def validate(cfg, args):
 
     for k, v in score.items():
         print(k, v)
+        headers.append(k)
+        vals.append(v)
 
     for i in range(n_classes):
         print(i, class_iou[i])
+        headers.append("Class {} IoU".format(i))
+        vals.append(class_iou[i])
+        
+    lines = [vals]
+    csv_file = Path("results.csv")
+    if not csv_file.exists():
+       lines = [headers] + lines
+       csv_file.touch()
+    
+    with open(csv_file, 'a') as fd:
+        writer = csv.writer(fd)
+        for l in lines:
+            writer.writerow(l)
 
 
 if __name__ == "__main__":
