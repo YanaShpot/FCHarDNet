@@ -125,11 +125,11 @@ def validate(cfg, args):
                     blend = img_input * 0.2 + decoded * 0.8
                     fname_new = fname[0]
                     fname_new = fname_new[:-4]
-                    fname_new += '.jpg'
+                    fname_new += '.jpg'  # why PNG won't work?
                     rgb_dir = Path("./out_rgb/") / model_name
                     if not rgb_dir.exists():
                       rgb_dir.mkdir(parents=True, exist_ok=True)
-                    imageio.imwrite(dir/fname_new, blend)
+                    imageio.imwrite(rgb_dir/fname_new, blend)
 
                 
             pred = outputs.data.max(1)[1].cpu().numpy()
