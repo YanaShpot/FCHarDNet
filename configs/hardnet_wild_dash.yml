@@ -4,8 +4,8 @@ data:
     dataset: wild_dash
     train_split: train
     val_split: val
-    img_rows: 1080
-    img_cols: 1920
+    img_rows: 1024
+    img_cols: 2048
     size_limit: 10
     path: '/content/gdrive/My Drive/CityscapesCustom'
 training:
