@@ -155,7 +155,7 @@ class WildDashLoader(data.Dataset):
         img_path = Path(self.files[self.split][index].rstrip())
 
         name = Path(img_path).stem + ".png"
-        lbl_path = Path(self.annotations_base) / img_path.split(os.sep)[-2] / name
+        lbl_path = Path(self.annotations_base) / img_path.parent.name / name
 
         img = Image.open(img_path)
         img = np.array(img, dtype=np.uint8)
