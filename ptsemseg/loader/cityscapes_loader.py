@@ -56,6 +56,7 @@ class cityscapesLoader(data.Dataset):
         split="train",
         is_transform=False,
         img_size=(1024, 2048),
+        size_to_load=-1,
         augmentations=None,
         img_norm=True,
         version="cityscapes",
@@ -68,6 +69,7 @@ class cityscapesLoader(data.Dataset):
         :param is_transform:
         :param img_size:
         :param augmentations
+        :param size_to_load
         """
         self.root = root
         self.split = split
@@ -139,10 +141,16 @@ class cityscapesLoader(data.Dataset):
             raise Exception("No files for split=[%s] found in %s" % (split, self.images_base))
 
         print("Found %d %s images" % (len(self.files[split]), split))
+        if size_to_load == -1 or size_to_load > len(self.files[split]):
+            self.size_to_load = len(self.files[split])
+        else:
+            self.size_to_load = size_to_load
+
+    
 
     def __len__(self):
         """__len__"""
-        return len(self.files[self.split])
+        return self.size_to_load
 
     def __getitem__(self, index):
         """__getitem__

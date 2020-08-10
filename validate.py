@@ -6,6 +6,7 @@ import time
 import os
 import numpy as np
 import scipy.misc as misc
+import imageio
 
 from torch.utils import data
 from torchstat import stat
@@ -28,6 +29,7 @@ def validate(cfg, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Setup Dataloader
+    # This function just gets loader for the particular dataset
     data_loader = get_loader(cfg["data"]["dataset"])
     data_path = cfg["data"]["path"]
 
@@ -36,17 +38,19 @@ def validate(cfg, args):
         split=cfg["data"]["val_split"],
         is_transform=True,
         img_size=(1024,2048),
+        size_to_load=10,
     )
 
     n_classes = loader.n_classes
 
     valloader = data.DataLoader(loader, batch_size=1, num_workers=1)
+  
     running_metrics = runningScore(n_classes)
 
     # Setup Model
 
     model = get_model(cfg["model"], n_classes).to(device)
-    state = convert_state_dict(torch.load(args.model_path)["model_state"])
+    state = convert_state_dict(torch.load(args.model_path, map_location=torch.device('cpu'))["model_state"])
     model.load_state_dict(state)
     
     if args.bn_fusion:
@@ -54,7 +58,7 @@ def validate(cfg, args):
     
     #Transform model into v2. Please set trt=True when converting to TensorRT model
     model.v2_transform(trt=False) 
-    print(model)
+    #print(model)
     
     if args.update_bn:
       print("Reset BatchNorm and recalculate mean/var")
@@ -93,13 +97,13 @@ def validate(cfg, args):
 
             pred = np.argmax(outputs, axis=1)
         else:
-            torch.cuda.synchronize()
+            #torch.cuda.synchronize()
             start_time = time.perf_counter()
 
             with torch.no_grad():
               outputs = model(images)
 
-            torch.cuda.synchronize()
+            #torch.cuda.synchronize()
             elapsed_time = time.perf_counter() - start_time
             
             if args.save_image:
@@ -110,7 +114,7 @@ def validate(cfg, args):
                 dir = "./out_predID/"
                 if not os.path.exists(dir):
                   os.mkdir(dir)
-                misc.imsave(dir+fname[0], decoded)
+                imageio.imwrite(dir+fname[0], decoded)
 
                 if save_rgb:
                     decoded = loader.decode_segmap(pred)
@@ -123,7 +127,7 @@ def validate(cfg, args):
                     dir = "./out_rgb/"
                     if not os.path.exists(dir):
                       os.mkdir(dir)
-                    misc.imsave(dir+fname_new, blend)
+                    imageio.imwrite(dir+fname_new, blend)
 
                 
             pred = outputs.data.max(1)[1].cpu().numpy()
@@ -144,10 +148,12 @@ def validate(cfg, args):
         
 
     score, class_iou = running_metrics.get_scores()
-    print("Total Frame Rate = %.2f fps" %(500/total_time ))
+    
+    print("Total Frame Rate = %.2f fps" %( loader.size_to_load / total_time ))
 
     if args.update_bn:
-      model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
+      model = torch.nn.DataParallel(model)
+      #model = torch.nn.DataParallel(model, device_ids=range(torch.cuda.device_count()))
       state2 = {"model_state": model.state_dict()}
       torch.save(state2, 'hardnet_cityscapes_mod.pth')
 

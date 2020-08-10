@@ -6,8 +6,8 @@ data:
     val_split: val
     img_rows: 1024
     img_cols: 1024
-    path: /mnt/ssd2/Cityscapes/
-    sbd_path: /mnt/ssd2/Cityscapes/
+    path: C:\Users\natalia.shpot\Desktop\Segmentation\Segm_Inference\FCHarDNet\datasets\Cityscapes\
+    sbd_path: C:\Users\natalia.shpot\Desktop\Segmentation\Segm_Inference\FCHarDNet\datasets\Cityscapes\
 training:
     train_iters: 90000
     batch_size: 16
