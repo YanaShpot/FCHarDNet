@@ -7,7 +7,6 @@ data:
     img_rows: 1024
     img_cols: 1024
     path: '/content/gdrive/My Drive/Cityscapes'
-    sbd_path: '/content/gdrive/My Drive/Cityscapes'
 training:
     train_iters: 90000
     batch_size: 16
