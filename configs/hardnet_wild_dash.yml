@@ -7,6 +7,7 @@ data:
     img_rows: 1024
     img_cols: 2048
     size_limit: 10
+    do_transform: False
     path: '/content/gdrive/My Drive/CityscapesCustom'
 training:
     train_iters: 90000
