@@ -80,7 +80,7 @@ class WildDashLoader(data.Dataset):
 
         self.files[split] = recursive_glob(rootdir=self.images_base, suffix=".jpg")
 
-        self.void_classes = [0, 1, 2, 3, 4, 5, 6, 9, 10, 14, 15, 16, 18, 29, 30, 34, 35, 36, 37, 38 -1]
+        self.void_classes = [0, 1, 2, 3, 4, 5, 6, 9, 10, 14, 15, 16, 18, 29, 30, 34, 35, 36, 37, 38, -1]
         self.valid_classes = [
             7,
             8,
