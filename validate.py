@@ -37,7 +37,7 @@ def validate(cfg, args):
     loader = data_loader(
         data_path,
         split=cfg["data"]["val_split"],
-        is_transform=True,
+        is_transform=cfg["data"]["do_transform"],
         img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),
         size_to_load=cfg["data"]["size_limit"],
     )
