@@ -112,7 +112,7 @@ def validate(cfg, args):
 
                 decoded = loader.decode_segmap_id(pred)
                 model_name = Path(args.model_path).stem
-                dir = Path("./out_predID/") / model_name
+                dir = Path("./out_predID/") / model_name / cfg["data"]["dataset"]
                 if not dir.exists():
                   dir.mkdir(parents=True, exist_ok=True)
                 imageio.imwrite(dir/fname[0], decoded)
@@ -126,7 +126,7 @@ def validate(cfg, args):
                     fname_new = fname[0]
                     fname_new = fname_new[:-4]
                     fname_new += '.jpg'  # why PNG won't work?
-                    rgb_dir = Path("./out_rgb/") / model_name
+                    rgb_dir = Path("./out_rgb/") / model_name / cfg["data"]["dataset"]
                     if not rgb_dir.exists():
                       rgb_dir.mkdir(parents=True, exist_ok=True)
                     imageio.imwrite(rgb_dir/fname_new, blend)
