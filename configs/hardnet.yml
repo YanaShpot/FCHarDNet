@@ -5,7 +5,7 @@ data:
     train_split: train
     val_split: val
     img_rows: 1024
-    img_cols: 1024
+    img_cols: 2048
     size_limit: 10
     path: '/content/gdrive/My Drive/Cityscapes'
 training:
