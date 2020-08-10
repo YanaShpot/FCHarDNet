@@ -11,6 +11,7 @@ import imageio
 from torch.utils import data
 from torchstat import stat
 from pytorch_bn_fusion.bn_fusion import fuse_bn_recursively
+from pathlib import Path
 
 from ptsemseg.models import get_model
 from ptsemseg.loader import get_loader
@@ -108,14 +109,15 @@ def validate(cfg, args):
             
             if args.save_image:
                 pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
-                save_rgb = True
-                
+
                 decoded = loader.decode_segmap_id(pred)
-                dir = "./out_predID/"
-                if not os.path.exists(dir):
-                  os.mkdir(dir)
+                model_name = Path(args.model_path).stem
+                dir = Path("./out_predID/") / model_name
+                if not dir.exists():
+                  dir.mkdir(parents=True, exist_ok=True)
                 imageio.imwrite(dir+fname[0], decoded)
 
+                save_rgb = True
                 if save_rgb:
                     decoded = loader.decode_segmap(pred)
                     img_input = np.squeeze(images.cpu().numpy(),axis=0)
