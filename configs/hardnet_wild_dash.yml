@@ -4,11 +4,14 @@ data:
     dataset: wild_dash
     train_split: train
     val_split: val
-    img_rows: 1024
-    img_cols: 2048
+    img_norm: True
+    version: "cityscapes"
+    img_rows: 1080
+    img_cols: 1920
     size_limit: 10
     do_transform: True
-    path: '/content/gdrive/My Drive/CityscapesCustom'
+    #path: '/content/gdrive/My Drive/CityscapesCustom'
+    path: 'C:\Users\natalia.shpot\Desktop\Segmentation\Segm_Inference\FCHarDNet\datasets\CityscapesCustom'
 training:
     train_iters: 90000
     batch_size: 16

@@ -2,6 +2,9 @@ import copy
 import torchvision.models as models
 
 from ptsemseg.models.hardnet import hardnet
+from ptsemseg.models.icnet import icnet
+from ptsemseg.models.bisenet import BiSeNetV2
+
 
 def get_model(model_dict, n_classes, version=None):
     name = model_dict["arch"]
@@ -18,6 +21,9 @@ def _get_model_instance(name):
     try:
         return {
             "hardnet": hardnet,
+            "icnet": icnet,
+            "bisenetv2": BiSeNetV2,
+
         }[name]
     except:
         raise ("Model {} not available".format(name))

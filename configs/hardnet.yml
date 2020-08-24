@@ -4,11 +4,14 @@ data:
     dataset: cityscapes
     train_split: train
     val_split: val
+    img_norm: True
+    version: "cityscapes"
     img_rows: 1024
     img_cols: 2048
     size_limit: 10
     do_transform: True
-    path: '/content/gdrive/My Drive/Cityscapes'
+    #path: '/content/gdrive/My Drive/Cityscapes'
+    path: 'C:\Users\natalia.shpot\Desktop\Segmentation\Segm_Inference\FCHarDNet\datasets\Cityscapes'
 training:
     train_iters: 90000
     batch_size: 16

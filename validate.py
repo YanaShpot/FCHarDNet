@@ -41,6 +41,8 @@ def validate(cfg, args):
         is_transform=cfg["data"]["do_transform"],
         img_size=(cfg["data"]["img_rows"], cfg["data"]["img_cols"]),
         size_to_load=cfg["data"]["size_limit"],
+        img_norm=cfg["data"]["img_norm"],
+        version=cfg["data"]["version"],
     )
 
     n_classes = loader.n_classes
@@ -51,16 +53,20 @@ def validate(cfg, args):
 
     # Setup Model
 
+    model_name = cfg["model"]["arch"]
     model = get_model(cfg["model"], n_classes).to(device)
-    state = convert_state_dict(torch.load(args.model_path, map_location=torch.device('cpu'))["model_state"])
-    model.load_state_dict(state)
+    if model_name == "bisenetv2":
+        model.load_state_dict(torch.load(args.model_path, map_location='cpu'))
+    else:
+        state = convert_state_dict(torch.load(args.model_path, map_location=torch.device('cpu'))["model_state"])
+        model.load_state_dict(state)
     
     if args.bn_fusion:
       model = fuse_bn_recursively(model)
     
-    #Transform model into v2. Please set trt=True when converting to TensorRT model
-    model.v2_transform(trt=False) 
-    #print(model)
+    if model_name == "hardnet":
+        #Transform model into v2. Please set trt=True when converting to TensorRT model
+        model.v2_transform(trt=False) 
     
     if args.update_bn:
       print("Reset BatchNorm and recalculate mean/var")
@@ -68,6 +74,7 @@ def validate(cfg, args):
       model.train()
     else:
       model.eval()
+      
     model.to(device)
     total_time = 0
     
@@ -109,30 +116,33 @@ def validate(cfg, args):
             #torch.cuda.synchronize()
             elapsed_time = time.perf_counter() - start_time
             
-            if args.save_image:
-                pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
+        if args.save_image:
+            pred = np.squeeze(outputs.data.max(1)[1].cpu().numpy(), axis=0)
 
-                decoded = loader.decode_segmap_id(pred)
-                dir = Path("./out_predID/") / model_name / cfg["data"]["dataset"]
-                if not dir.exists():
-                  dir.mkdir(parents=True, exist_ok=True)
-                imageio.imwrite(dir/fname[0], decoded)
+            decoded = loader.decode_segmap_id(pred)
+            dir = Path("./out_predID/") / model_name / cfg["data"]["dataset"]
+            if not dir.exists():
+                dir.mkdir(parents=True, exist_ok=True)
+            imageio.imwrite(dir/fname[0], decoded)
 
-                save_rgb = True
-                if save_rgb:
+            save_rgb = True
+            if save_rgb:
+                if model_name == "bisenetv2":
+                    palette = np.random.randint(0, 256, (256, 3), dtype=np.uint8)
+                    decoded = palette[pred]
+                else:
                     decoded = loader.decode_segmap(pred)
-                    img_input = np.squeeze(images.cpu().numpy(),axis=0)
-                    img_input = img_input.transpose(1, 2, 0)
-                    blend = img_input * 0.2 + decoded * 0.8
-                    fname_new = fname[0]
-                    fname_new = fname_new[:-4]
-                    fname_new += '.jpg'  # why PNG won't work?
-                    rgb_dir = Path("./out_rgb/") / model_name / cfg["data"]["dataset"]
-                    if not rgb_dir.exists():
-                      rgb_dir.mkdir(parents=True, exist_ok=True)
-                    imageio.imwrite(rgb_dir/fname_new, blend)
+                img_input = np.squeeze(images.cpu().numpy(),axis=0)
+                img_input = img_input.transpose(1, 2, 0)
+                blend = img_input * 0.2 + decoded * 0.8
+                fname_new = fname[0]
+                fname_new = fname_new[:-4]
+                fname_new += '.jpg'  # why PNG won't work?
+                rgb_dir = Path("./out_rgb/") / model_name / cfg["data"]["dataset"]
+                if not rgb_dir.exists():
+                    rgb_dir.mkdir(parents=True, exist_ok=True)
+                imageio.imwrite(rgb_dir/fname_new, blend)
 
-                
             pred = outputs.data.max(1)[1].cpu().numpy()
 
         gt = labels.numpy()
@@ -146,7 +156,6 @@ def validate(cfg, args):
                     i + 1, s,1 / elapsed_time
                 )
             )
-        
         running_metrics.update(gt, pred)
         
 
@@ -164,12 +173,14 @@ def validate(cfg, args):
       torch.save(state2, 'hardnet_cityscapes_mod.pth')
 
     for k, v in score.items():
-        print(k, v)
+        if args.calc_metrics:
+            print(k, v)
         headers.append(k)
         vals.append(v)
 
     for i in range(n_classes):
-        print(i, class_iou[i])
+        if args.calc_metrics:
+            print(i, class_iou[i])
         headers.append("Class {} IoU".format(i))
         vals.append(class_iou[i])
         
@@ -256,7 +267,22 @@ if __name__ == "__main__":
         help="Disable performing batch norm fusion with convolutional layers |\
               bn_fusion is enabled by default",
     )
-    parser.set_defaults(bn_fusion=True)   
+    parser.set_defaults(bn_fusion=True)
+
+    parser.add_argument(
+        "--calc_metrics",
+        dest="calc_metrics",
+        action="store_true",
+        help="Enable evaluation with metrics |\
+                              True by default",
+    )
+    parser.add_argument(
+        "--no-calc_metrics",
+        dest="calc_metrics",
+        action="store_false",
+        help="Disable evaluation with with metrics",
+    )
+    parser.set_defaults(calc_metrics=True)   
 
     args = parser.parse_args()
 

@@ -1,0 +1,38 @@
+model:
+    arch: bisenetv2
+data:
+    dataset: wild_dash
+    train_split: train
+    val_split: val
+    img_norm: False
+    version: "cityscapes"
+    img_rows: 1080
+    img_cols: 1920
+    size_limit: 10
+    do_transform: True
+    #path: '/content/gdrive/My Drive/CityscapesCustom'
+    path: 'C:\Users\natalia.shpot\Desktop\Segmentation\Segm_Inference\FCHarDNet\datasets\CityscapesCustom'
+training:
+    train_iters: 90000
+    batch_size: 16
+    val_interval: 500
+    n_workers: 8
+    print_interval: 10
+    augmentations:
+        hflip: 0.5
+        rscale_crop: [1024, 1024]
+    optimizer:
+        name: 'sgd'
+        lr: 0.02
+        weight_decay: 0.0005
+        momentum: 0.9
+    loss:
+        name: 'bootstrapped_cross_entropy'
+        min_K: 4096
+        loss_th: 0.3
+        size_average: True
+    lr_schedule: 
+        name: 'poly_lr'
+        max_iter: 90000
+    resume: icnet_cityscapes_trainval_90k.pth
+    finetune: None    

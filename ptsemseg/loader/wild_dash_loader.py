@@ -184,6 +184,13 @@ class WildDashLoader(data.Dataset):
         img = img[:, :, ::-1]  # RGB -> BGR
         img = img.astype(np.float64)
 
+        # TODO: check how to adjust this for each model. Below code snippet from bisenet
+        # mean = torch.tensor([0.3257, 0.3690, 0.3223], dtype=torch.float32).view(-1, 1, 1)
+        # std = torch.tensor([0.2112, 0.2148, 0.2115], dtype=torch.float32).view(-1, 1, 1)
+        # im = cv2.imread(args.img_path)
+        # im = im[:, :, ::-1].transpose(2, 0, 1).astype(np.float32)
+        # im = torch.from_numpy(im).div_(255).sub_(mean).div_(std).unsqueeze(0) #.cuda()
+
         value_scale = 255
         mean = [0.406, 0.456, 0.485]
         mean = [item * value_scale for item in mean]
