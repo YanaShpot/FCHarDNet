@@ -45,10 +45,23 @@ class cityscapesLoader(data.Dataset):
 
     label_colours = dict(zip(range(19), colors))
 
-    mean_rgb = {
-        "pascal": [103.939, 116.779, 123.68],
-        "cityscapes": [0.0, 0.0, 0.0],
-    }  # pascal mean for PSPNet and ICNet pre-trained model
+    # TODO: check how mean and std are calculated from here https://discuss.pytorch.org/t/about-normalization-using-pre-trained-vgg16-networks/23560/6
+    # mean_rgb = {
+    #     "pascal": [103.939, 116.779, 123.68],
+    #     "cityscapes": [0.0, 0.0, 0.0],
+    # }  # pascal mean for PSPNet and ICNet pre-trained model
+
+    mean = {
+        "icnet": [0.406, 0.456, 0.485],
+        "hardnet": [0.406, 0.456, 0.485],
+        "bisenet": [0.3257, 0.3690, 0.3223],
+    }
+
+    std = {
+        "icnet": [0.225, 0.224, 0.229],
+        "hardnet": [0.225, 0.224, 0.229],
+        "bisenet": [0.2112, 0.2148, 0.2115],
+    }
 
     def __init__(
         self,
@@ -78,7 +91,8 @@ class cityscapesLoader(data.Dataset):
         self.img_norm = img_norm
         self.n_classes = 19
         self.img_size = img_size if isinstance(img_size, tuple) else (img_size, img_size)
-        self.mean = np.array(self.mean_rgb[version])
+        # self.mean = np.array(self.mean_rgb[version])
+        self.version = version
         self.files = {}
 
         self.images_base = os.path.join(self.root, "leftImg8bit", self.split)
@@ -191,11 +205,16 @@ class cityscapesLoader(data.Dataset):
         img = img[:, :, ::-1]  # RGB -> BGR
         img = img.astype(np.float64)
 
+        # TODO: check how to adjust this for each model. Below code snippet from bisenet
+        # mean = torch.tensor([0.3257, 0.3690, 0.3223], dtype=torch.float32).view(-1, 1, 1)
+        # std = torch.tensor([0.2112, 0.2148, 0.2115], dtype=torch.float32).view(-1, 1, 1)
+        # im = cv2.imread(args.img_path)
+        # im = im[:, :, ::-1].transpose(2, 0, 1).astype(np.float32)
+        # im = torch.from_numpy(im).div_(255).sub_(mean).div_(std).unsqueeze(0) #.cuda()
+
         value_scale = 255
-        mean = [0.406, 0.456, 0.485]
-        mean = [item * value_scale for item in mean]
-        std = [0.225, 0.224, 0.229]
-        std = [item * value_scale for item in std]
+        mean = [item * value_scale for item in self.mean[self.version]]
+        std = [item * value_scale for item in self.std[self.version]]
 
         if self.img_norm:
             img = (img - mean) / std

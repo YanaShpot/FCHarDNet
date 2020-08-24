@@ -1,11 +1,11 @@
 model:
-    arch: icnet
+    arch: bisenetv2
 data:
     dataset: cityscapes
     train_split: train
     val_split: val
     img_norm: True
-    version: icnet
+    version: bisenet
     img_rows: 1024
     img_cols: 2048
     size_limit: 10
@@ -34,5 +34,5 @@ training:
     lr_schedule: 
         name: 'poly_lr'
         max_iter: 90000
-    resume: icnet_cityscapes_trainval_90k.pth
+    resume: None
     finetune: None    
